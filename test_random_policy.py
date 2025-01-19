@@ -12,7 +12,7 @@ import gym
 from env.custom_hopper import *
 
 def main():
-    render = False
+    render = True
 
     env = gym.make('CustomHopper-source-v0')
     # env = gym.make('CustomHopper-target-v0')
