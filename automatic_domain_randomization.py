@@ -99,16 +99,31 @@ class ADR:
             buffer.clear()
 
             # Update bounds if average performance crosses thresholds
-            if avg_p > self.th_high or avg_p < self.th_low:
+            if avg_p > self.th_high:
                 updated = True
-                delta_value = self.delta if avg_p > self.th_high else -self.delta
                 if bound == "lower": 
-                    updated_value = self.d_bounds[i][0] + delta_value
-                    self.d_bounds[i] = [updated_value if updated_value > self.min_max_bounds[i][0] else self.min_max_bounds[i][0], self.d_bounds[i][1]]
+                    updated_value = self.d_bounds[i][0] - self.delta #Increase lower bound 
+                    updated_value = updated_value if updated_value > self.min_max_bounds[i][0] else self.min_max_bounds[i][0] #Check if the lower bound is higher than the minimum accepted value
+                    self.d_bounds[i] = [updated_value, self.d_bounds[i][1]]
                 else: 
-                    updated_value = self.d_bounds[i][1] + delta_value
-                    self.d_bounds[i] = [self.d_bounds[i][0], updated_value if updated_value < self.min_max_bounds[i][1] else self.min_max_bounds[i][1]]
+                    updated_value = self.d_bounds[i][1] + self.delta #Increase upper bound 
+                    updated_value = updated_value if updated_value < self.min_max_bounds[i][1] else self.min_max_bounds[i][1] #Check if the upper bound is lower than the maximum accepted value
+                    self.d_bounds[i] = [self.d_bounds[i][0], updated_value]
                 new_bound = [self.d_bounds[i][0], self.d_bounds[i][1]]
+                self.env.env_method('update_bounds', i, new_bound)
+            elif avg_p < self.th_low:
+                updated = True 
+                if bound == "lower": 
+                    updated_value = self.d_bounds[i][0] + self.delta #Decrease lower bound 
+                    updated_value = updated_value if updated_value < self.d_bounds[i][1] else self.d_bounds[i][1] # Check that low_b < up_b 
+                    self.d_bounds[i] = [updated_value, self.d_bounds[i][1]]
+                else: 
+                    updated_value = self.d_bounds[i][1] - self.delta #Decrease upper bound 
+                    updated_value = updated_value if updated_value > self.d_bounds[i][0] else self.d_bounds[i][0] # Check that up_b > low_b 
+                    self.d_bounds[i] = [self.d_bounds[i][0], updated_value]
+                new_bound = [self.d_bounds[i][0], self.d_bounds[i][1]]
+                self.env.env_method('update_bounds', i, new_bound)
+                
         return updated, i, new_bound
 
 # Custom callback for integrating ADR with Stable-Baselines3 
@@ -128,6 +143,9 @@ class ADRCallback(BaseCallback):
         self.env = env
         self.boundary_sampling_probability = boundary_sampling_probability
         self.verbose = verbose
+        self.bound_to_update = None
+        self.need_to_update = False
+        self.index_to_update = None 
 
     def _on_step(self) -> bool:
         """
@@ -136,13 +154,27 @@ class ADRCallback(BaseCallback):
         Returns:
             bool: True to continue training.
         """
+        infos = self.locals.get("infos", None)
+        if "episode" in infos[0]:
+            episode_end = True 
+            if self.need_to_update: #Update bounds at the end of the episode if necessary
+                self.env.update_bounds(self.index_to_update, self.bound_to_update)
+                self.need_to_update = False
+                self.bound_to_update = None
+                self.index_to_update = None
+        else:
+            episode_end = False
         if np.random.rand() < self.boundary_sampling_probability:   
             i, updated_parameters, bound = self.adr.sample_parameters()
             performance = self.adr.evaluate_performance(self.model, updated_parameters)
             updated, j, new_bound = self.adr.update_phi(i, performance, bound)
             if updated:
-                self.env.update_bounds(j, new_bound)
-                self.env.reset()
+                if episode_end: #Episode ended, update the bound
+                    self.env.update_bounds(j, new_bound)
+                else:   #Episode NOT ended, save the bound to be updated when the episode ends
+                    self.need_to_update = True
+                    self.bound_to_update = new_bound
+                    self.index_to_update = j
             if self.verbose == 1:
                 print(f"Performance Evaluation - Step: {self.num_timesteps}, Performance: {performance}")
         return True
