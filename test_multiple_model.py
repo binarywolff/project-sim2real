@@ -7,7 +7,9 @@ import sys
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 from stable_baselines3 import PPO, SAC
+from env.custom_half_cheetah import *
 from env.custom_hopper import *
+from env.custom_hopper_adr import *
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.monitor import Monitor
 
@@ -115,6 +117,9 @@ if __name__ == "__main__":
         sys.exit()
     if args.env not in ["hopper", "cheetah"]:
         print("ERROR: env accepted values: hopper, cheetah")
+        sys.exit()
+    if args.env == "cheetah" and (args.model == "source" or args.model == "target"):
+        print("ERROR: unsupported combination only cheetah-adr, cheetah-udr")
         sys.exit()
     main(args)
        
