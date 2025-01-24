@@ -11,27 +11,39 @@ from .mujoco_env import MujocoEnv
 from scipy.stats import truncnorm
 
 class CustomHopper(MujocoEnv, utils.EzPickle):
-    def __init__(self, domain=None, xml_file = "assets/hopper.xml"):
+    def __init__(self, xml_file="assets/hopper.xml", domain=None, udr=None, thigh_range=None, leg_range=None, foot_range=None):
         MujocoEnv.__init__(self, 1, xml_file)
         utils.EzPickle.__init__(self)
 
-        self.original_masses = np.copy(self.sim.model.body_mass[1:])    # Default link masses
+        self.udr = udr
+        self.thigh_range = thigh_range or [0.5, 1.5]
+        self.leg_range = leg_range or [0.5, 1.5]
+        self.foot_range = foot_range or [0.5, 1.5]
 
         if domain == 'source':  # Source environment has an imprecise torso mass (1kg shift)
             self.sim.model.body_mass[1] -= 1.0
+        
+        self.original_masses = np.copy(self.sim.model.body_mass[1:])    # Default link masses
 
 
     def set_random_parameters(self):
         """Set random masses
-        TODO
         """
-        self.set_parameters(*self.sample_parameters())
+        self.set_parameters(self.sample_parameters())
 
     def sample_parameters(self):
         """Sample masses according to a domain randomization distribution
-        TODO
         """
-        return
+        torso = self.original_masses[0]
+        thigh = self.original_masses[1]
+        leg = self.original_masses[2]
+        foot = self.original_masses[3]
+
+        thigh *= np.random.uniform(self.thigh_range[0], self.thigh_range[1])
+        leg *= np.random.uniform(self.leg_range[0], self.leg_range[1])
+        foot *= np.random.uniform(self.foot_range[0], self.foot_range[1])
+        
+        return np.array([torso, thigh, leg, foot])
 
     def get_parameters(self):
         """Get value of mass for each link"""
@@ -74,6 +86,8 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         """Reset the environment to a random initial state"""
         qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
         qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
+        if self.udr == "True":
+          self.set_random_parameters()
         self.set_state(qpos, qvel)
         return self._get_obs()
 
@@ -108,3 +122,9 @@ gym.envs.register(
         kwargs={"domain": "target"}
 )
 
+gym.envs.register(
+        id="CustomHopper-udr-v0",
+        entry_point="%s:CustomHopper" % __name__,
+        max_episode_steps=500,
+        kwargs={"domain": "source", "udr": "True"}
+)
