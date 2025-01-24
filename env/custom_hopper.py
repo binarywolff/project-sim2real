@@ -11,8 +11,8 @@ from .mujoco_env import MujocoEnv
 from scipy.stats import truncnorm
 
 class CustomHopper(MujocoEnv, utils.EzPickle):
-    def __init__(self, domain=None):
-        MujocoEnv.__init__(self, 1, xml_file = "assets/hopper.xml")
+    def __init__(self, domain=None, xml_file = "assets/hopper.xml"):
+        MujocoEnv.__init__(self, 1, xml_file)
         utils.EzPickle.__init__(self)
 
         self.original_masses = np.copy(self.sim.model.body_mass[1:])    # Default link masses
