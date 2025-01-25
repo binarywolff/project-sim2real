@@ -3,18 +3,17 @@ import numpy as np
 
 import gym
 from env.custom_hopper import *
-from util import train, set_seed, test
+from util import train, test
 import os
 
 def main():
-    set_seed(42)
     # Training on SOURCE domain
     print("Training on source")
     source_env = gym.make('CustomHopper-source-v0')
     log_dir = f"./tmp/gym/train/CustomHopper-source-v0"
     os.makedirs(log_dir, exist_ok=True)
     source_env = Monitor(source_env, log_dir) # Logs will be saved in log_dir/monitor.csv
-    train(source_env, seed=42, total_timesteps=200_000, log_dir=log_dir, env_id='CustomHopper-source-v0', algo='ppo')
+    train(source_env, seed=None, total_timesteps=200_000, log_dir=log_dir, env_id='CustomHopper-source-v0', algo='ppo')
 
     # Training on TARGET domain
     print("Training on target")
@@ -22,7 +21,7 @@ def main():
     log_dir = f"./tmp/gym/train/CustomHopper-target-v0"
     os.makedirs(log_dir, exist_ok=True)
     target_env = Monitor(target_env, log_dir) # Logs will be saved in log_dir/monitor.csv
-    train(target_env, seed=42, total_timesteps=200_000, log_dir=log_dir, env_id='CustomHopper-target-v0', algo='ppo')
+    train(target_env, seed=None, total_timesteps=200_000, log_dir=log_dir, env_id='CustomHopper-target-v0', algo='ppo')
 
     # Testing SOURCE model on SOURCE domain
     print("Testing source->source configuration")
