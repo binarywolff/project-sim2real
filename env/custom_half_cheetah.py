@@ -11,7 +11,7 @@ from .mujoco_env import MujocoEnv
 from scipy.stats import truncnorm
 
 class HalfCheetah(MujocoEnv, utils.EzPickle):
-    def __init__(self, domain=None, ADR = False, xml_file = "assets/half_cheetah.xml"):
+    def __init__(self, domain=None, ADR = False, UDR = False, xml_file = "assets/half_cheetah.xml"):
         self.ctrl_cost_weight=0.1
         self.forward_reward_weight=1.0
         MujocoEnv.__init__(self, 1, xml_file)
@@ -21,6 +21,7 @@ class HalfCheetah(MujocoEnv, utils.EzPickle):
         if domain == 'source':  # Source environment has an imprecise torso mass (1kg shift)
             self.sim.model.body_mass[1] -= 1.0
         self.ADR = ADR
+        self.UDR = UDR
         self.masses_bounds = [(0.5 * mass, 1.5 * mass) for mass in self.get_parameters()]
         
         
@@ -107,7 +108,7 @@ class HalfCheetah(MujocoEnv, utils.EzPickle):
         """Reset the environment to a random initial state"""
         qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
         qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
-        if self.ADR == True:
+        if self.ADR == True or self.UDR == True:
             self.set_random_parameters()
         self.set_state(qpos, qvel)
         return self._get_obs()
@@ -143,9 +144,16 @@ gym.envs.register(
 )
 
 gym.envs.register(
+        id="HalfCheetah-source-udr-v3",
+        entry_point="%s:HalfCheetah" % __name__,
+        max_episode_steps=500,
+        kwargs={"domain": "source", "UDR" : True, "ADR" : False}
+)
+
+gym.envs.register(
         id="HalfCheetah-source-adr-v3",
         entry_point="%s:HalfCheetah" % __name__,
         max_episode_steps=500,
-        kwargs={"domain": "source", "ADR" : True}
+        kwargs={"domain": "source", "UDR" : False, "ADR" : True}
 )
 
