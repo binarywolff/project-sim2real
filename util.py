@@ -38,11 +38,11 @@ def train(env, seed, total_timesteps, log_dir, env_id, verbose = 0, algo="ppo"):
     model.save(f"models/{algo.upper()}_{env_id}")
     plot_train_results(log_dir, env_id)
 
-def test(env, model_file, render=False, test_episodes=50, algo="ppo"):
+def test(env, model_file, render=False, test_episodes=50, algo="ppo", scenario="source_source"):
     model = load_model(model_file, env, algo)
     rewards, _= evaluate_policy(model, env, n_eval_episodes=test_episodes, render=render, return_episode_rewards=True)
     print(f"Test reward (avg +/- std): ({np.mean(rewards):.3f} +/- {np.std(rewards):.3f}) - Num episodes: {test_episodes}")
-    plot_test_results(rewards)
+    plot_test_results(rewards, scenario)
 
 def moving_average(values, window):
     """
@@ -73,7 +73,7 @@ def plot_train_results(log_folder, env_id, title="Learning Curve"):
     plt.title(title)
     plt.savefig(f"training_results/{env_id}_reward.png", dpi=300, bbox_inches="tight")
 
-def plot_test_results(rewards):
+def plot_test_results(rewards, scenario):
     plt.figure()
     plt.plot(range(len(rewards)), rewards, label="Episode Reward")
     plt.axhline(np.mean(rewards), color="red", label="Average Reward")
@@ -81,4 +81,4 @@ def plot_test_results(rewards):
     plt.xlabel("episode")
     plt.ylabel("reward")
     plt.legend()
-    plt.savefig(f"test_results/test_reward.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"test_results/{scenario}_test_reward.png", dpi=300, bbox_inches="tight")
