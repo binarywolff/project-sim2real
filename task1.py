@@ -10,12 +10,14 @@
 """
 import gym
 from env.custom_hopper import *
-
+from env.custom_half_cheetah import *
 def main():
     render = False
 
     env = gym.make('CustomHopper-source-v0')
     #env = gym.make('CustomHopper-target-v0')
+    #env = gym.make('HalfCheetah-source-v3')
+    #env = gym.make('HalfCheetah-target-v3')
 
     print('State space:', env.observation_space)  # state-space
     print('Action space:', env.action_space)  # action-space
