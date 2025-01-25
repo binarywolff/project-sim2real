@@ -22,7 +22,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 def parse_args(args=sys.argv[1:]):
     parser = argparse.ArgumentParser()
     parser.add_argument("--domain", type=str, help="Domain to be trained. Possible values source, target, udr, adr", required=True)
-    parser.add_argument("--env", type=str, help="Model to be tested. Possible values hopper, cheetah", required=True)
+    parser.add_argument("--env", type=str, help="Environment of training. Possible values hopper, cheetah", required=True)
     parser.add_argument("--total_timesteps", type=int, default=None, help="Number of episodes to train for")
     parser.add_argument("--num_runs", type=int, default=10, help="How many independent training runs to conduct")
     return parser.parse_args(args)
