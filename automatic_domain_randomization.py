@@ -76,7 +76,7 @@ class ADR:
             action, _ = model.predict(obs)  # Predict action using the model
             obs, reward, done, _ = self.env.step(action) # Take a step in the environment
             total_reward += reward # Accumulate reward
-        eps_rewards.append(total_reward)
+        eps_rewards.append(total_reward.item())
         return np.mean(eps_rewards) 
     
     def update_phi(self, i, performance, bound):
@@ -210,7 +210,7 @@ class ADRCallback(BaseCallback):
                     self.current_sampled_parameters = updated_parameters
 
                     # Evaluate performance and update bounds
-                    performance = self.adr.evaluate_performance(self.model, self.prev_sampled_parameters, self.eps_rewards)
+                    performance = self.adr.evaluate_performance(self.model, self.prev_sampled_parameters, self.eps_rewards.copy())
                     self.eps_rewards.clear()
                     updated = self.adr.update_phi(self.prev_parameter, performance, self.prev_bound)
                     if updated: 
