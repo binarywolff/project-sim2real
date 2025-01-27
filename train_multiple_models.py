@@ -46,18 +46,18 @@ def train_PPO_ADR(env_id, trainer_id, domain, environment, total_timesteps, log_
     #Initial ADR parameters
     min_max_bounds = [(1, 10) for _ in env.get_parameters()]
     masses_bounds = [(0.5 * mass, 1.5 * mass) for mass in env.get_parameters()] #Initial range between 50% and 150% of original masses
-    thresholds = (600, 1300)
+    thresholds = (550, 1150)
     delta = 0.01 #Update step size 
     m = 20 #Buffer size
-    boundary_sampling_probability = 0.02
+    fixed_torso_mass = env.get_parameters()[0]
     
     env = Monitor(env, log_dir)
 
     adr_env = gym.make(env_id)
     adr_env = DummyVecEnv([lambda: adr_env])
 
-    adr = ADR(masses_bounds, thresholds, delta, m, min_max_bounds, adr_env)
-    adr_callback = ADRCallback(adr, env, boundary_sampling_probability)
+    adr = ADR(masses_bounds, thresholds, delta, m, min_max_bounds, adr_env, fixed_torso_mass)
+    adr_callback = ADRCallback(adr, env, f'entropy_log_{trainer_id}.csv')
 
     model = PPO("MlpPolicy", env, verbose=0)
     model.learn(total_timesteps=total_timesteps, callback=adr_callback, progress_bar=True)
@@ -71,15 +71,15 @@ def train_SAC_ADR(env_id, trainer_id, domain, environment, total_timesteps, log_
     thresholds = (700, 1600)
     delta = 0.01 #Update step size 
     m = 20 #Buffer size
-    boundary_sampling_probability = 0.02
+    fixed_torso_mass = env.get_parameters()[0]
     
     env = Monitor(env, log_dir)
 
     adr_env = gym.make(env_id)
     adr_env = DummyVecEnv([lambda: adr_env])
 
-    adr = ADR(masses_bounds, thresholds, delta, m, min_max_bounds, adr_env)
-    adr_callback = ADRCallback(adr, env, boundary_sampling_probability)
+    adr = ADR(masses_bounds, thresholds, delta, m, min_max_bounds, adr_env, fixed_torso_mass)
+    adr_callback = ADRCallback(adr, env, f'entropy_log_{trainer_id}.csv')
 
     model = SAC("MlpPolicy", env, verbose=0)
     model.learn(total_timesteps=total_timesteps, callback=adr_callback, progress_bar=True)
