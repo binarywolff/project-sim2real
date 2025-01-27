@@ -24,19 +24,6 @@ class HalfCheetah(MujocoEnv, utils.EzPickle):
         self.UDR = UDR
         self.masses_bounds = [(0.5 * mass, 1.5 * mass) for mass in self.get_parameters()]
         
-        
-
-
-    def update_bounds(self, i, bound):
-        """
-        Update the bounds for the mass at the specified index.
-
-        Args:
-            i (int): The index of the mass whose bounds are to be updated.
-            bound (tuple): A tuple representing the new bounds for the mass.
-        """
-        self.masses_bounds[i] = bound 
-    
     def set_random_parameters(self):
         """ Set random masses """
         self.set_parameters(self.sample_parameters())
@@ -94,9 +81,6 @@ class HalfCheetah(MujocoEnv, utils.EzPickle):
         }
         return observation, reward, done, {}
 
-        
-
-
     def _get_obs(self):
         """Get current state"""
         return np.concatenate([
@@ -108,7 +92,7 @@ class HalfCheetah(MujocoEnv, utils.EzPickle):
         """Reset the environment to a random initial state"""
         qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
         qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
-        if self.ADR == True or self.UDR == True:
+        if self.UDR == True:
             self.set_random_parameters()
         self.set_state(qpos, qvel)
         return self._get_obs()
