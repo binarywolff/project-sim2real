@@ -54,7 +54,7 @@ def tester(model_type, environment, test_episodes, num_runs):
                 model = PPO.load(f"models/{model_type}_{environment}/CustomHopper-udr-v0_{i}.zip", env=env)
         elif environment == "cheetah":
             if model_type == "adr":
-                model = SAC.load(f"models/{model_type}_{environment}/CustomHalfCheetah-adr-source-v3_{i}.zip", env=env)
+                model = SAC.load(f"models/{model_type}_{environment}/HalfCheetah-adr-source-v3_{i}.zip", env=env)
             elif model_type == "udr":
                 model = SAC.load(f"models/{model_type}_{environment}/CustomHalfCheetah-source-v3_{i}.zip", env=env)
         
