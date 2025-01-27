@@ -14,27 +14,6 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         if domain == 'source':  # Source environment has an imprecise torso mass (1kg shift)
             self.sim.model.body_mass[1] -= 1.0
         self.ADR = ADR
-        self.masses_bounds = [(0.5 * mass, 1.5 * mass) for mass in self.get_parameters()]
-
-    def update_bounds(self, i, bound):
-        """ Update the domain randomization distribution bound """
-        self.masses_bounds[i] = bound 
-    
-    def set_random_parameters(self):
-        """ Set random masses """
-        self.set_parameters(self.sample_parameters())
-
-    def sample_parameters(self):
-        """ Sample masses according to a domain randomization distribution """
-        sampled_parameters = np.zeros(len(self.masses_bounds))
-        for i in range(len(self.masses_bounds)):
-            if i != 0:
-                lower = self.masses_bounds[i][0]
-                upper = self.masses_bounds[i][1]
-                sampled_parameters[i] = np.random.uniform(lower, upper)
-            else: 
-                sampled_parameters[i] = self.sim.model.body_mass[1] #Keep the torso mass fixed
-        return sampled_parameters
 
     def get_parameters(self):
         """Get value of mass for each link"""
@@ -76,8 +55,6 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         """Reset the environment to a random initial state"""
         qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
         qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
-        if self.ADR == True:
-            self.set_random_parameters()
         self.set_state(qpos, qvel)
         return self._get_obs()
 
