@@ -55,15 +55,24 @@ class ADR:
                 high = self.d_bounds[j][1]
                 updated_parameters[j] = np.random.uniform(low, high)
         return i, updated_parameters, bound
+    
+    def sample_parameters_from_current_distribution(self):
+        updated_parameters = np.zeros(len(self.d_bounds))
+        updated_parameters[0] = self.fixed_torso_mass
+        for i in range(len(self.d_bounds)):
+            if i != 0: # Randomize other parameters within their bounds
+                low = self.d_bounds[i][0]
+                high = self.d_bounds[i][1]
+                updated_parameters[i] = np.random.uniform(low, high)
+        return updated_parameters
         
-    def evaluate_performance(self, model, updated_parameters, eps_rewards):
+    def evaluate_performance(self, model, updated_parameters):
         """
         Evaluate the agent's performance on the environment with updated parameters.
 
         Args:
             model: The trained agent.
             updated_parameters (list): Parameters to set in the environment.
-            eps_rewards (list): List to store episode rewards, containing the rewards from 5 training episodes. 
 
         Returns:
             float: Average episode reward across evaluations.
@@ -76,8 +85,7 @@ class ADR:
             action, _ = model.predict(obs)  # Predict action using the model
             obs, reward, done, _ = self.env.step(action) # Take a step in the environment
             total_reward += reward # Accumulate reward
-        eps_rewards.append(total_reward.item())
-        return np.mean(eps_rewards) 
+        return total_reward
     
     def update_phi(self, i, performance, bound):
         """
@@ -152,15 +160,6 @@ class ADRCallback(BaseCallback):
         self.adr = adr
         self.env = env
         self.eps_count = 0
-        self.eps_rewards = []
-
-        self.current_parameter = None
-        self.current_bound = None
-        self.current_sampled_parameters = None 
-
-        self.prev_parameter = None
-        self.prev_bound = None
-        self.prev_sampled_parameters = None 
 
         self.log_file = log_dir
         
@@ -168,7 +167,6 @@ class ADRCallback(BaseCallback):
         self.csv_file = open(self.log_file, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(['episode', 'entropy'])  # Headers for the CSV
-        self.count = 0 
 
     def _on_step(self) -> bool:
         """
@@ -181,43 +179,17 @@ class ADRCallback(BaseCallback):
         
         # Execute logic only at the end of an episode
         if "episode" in infos[0]:
-            self.count += 1
-            if self.count == 1:
-                # Initialize environment with sampled parameters for the first episode
+            self.eps_count += 1
+            if self.eps_count % 3 == 0: #Boundary sampling probability (every 3 episodes)
+                # Sample new environment to evaluate
                 i, updated_parameters, bound = self.adr.sample_parameters()
-                self.env.set_parameters(updated_parameters)
-                self.current_parameter = i
-                self.current_bound = bound
-                self.current_sampled_parameters = updated_parameters
+                # Evaluate performance and update bounds
+                performance = self.adr.evaluate_performance(self.model, updated_parameters)
+                updated = self.adr.update_phi(i, performance, bound)
+                if updated: 
+                    entropy = self.adr.entropy()
+                    self.csv_writer.writerow([self.eps_count, entropy])
             else: 
-                self.eps_count += 1 
-                if self.eps_count >= 5: #Boundary sampling probability (every 5 episodes)
-                    self.eps_count = 0
-                    self.eps_rewards.append(infos[0]["episode"]['r'])
-
-                    # Sample new environment parameters
-                    i, updated_parameters, bound = self.adr.sample_parameters()
-                    self.env.set_parameters(updated_parameters)
-
-                     # Update previous state information
-                    self.prev_bound = self.current_bound
-                    self.prev_parameter = self.current_parameter
-                    self.prev_sampled_parameters = self.current_sampled_parameters
-                    
-                    # Update current state information
-                    self.current_parameter = i
-                    self.current_bound = bound
-                    self.current_sampled_parameters = updated_parameters
-
-                    # Evaluate performance and update bounds
-                    performance = self.adr.evaluate_performance(self.model, self.prev_sampled_parameters, self.eps_rewards.copy())
-                    self.eps_rewards.clear()
-                    updated = self.adr.update_phi(self.prev_parameter, performance, self.prev_bound)
-                    if updated: 
-                        entropy = self.adr.entropy()
-                        self.csv_writer.writerow([self.count, entropy])
-
-                else: 
-                    self.eps_rewards.append(infos[0]["episode"]['r'])
-            
+                #Sample a new environment from the distribution, an update the parameters
+                self.env.set_parameters(self.adr.sample_parameters_from_current_distribution())
         return True
