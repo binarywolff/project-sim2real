@@ -7,13 +7,14 @@ from .mujoco_env import MujocoEnv
 
 class CustomHopper(MujocoEnv, utils.EzPickle):
     def __init__(self, xml_file="assets/hopper.xml", domain=None, ADR = False):
-        MujocoEnv.__init__(self, 1, xml_file)
+        MujocoEnv.__init__(self, 4, xml_file)
         utils.EzPickle.__init__(self)
 
         self.original_masses = np.copy(self.sim.model.body_mass[1:])    # Default link masses
         if domain == 'source':  # Source environment has an imprecise torso mass (1kg shift)
             self.sim.model.body_mass[1] -= 1.0
         self.ADR = ADR
+        
 
     def get_parameters(self):
         """Get value of mass for each link"""

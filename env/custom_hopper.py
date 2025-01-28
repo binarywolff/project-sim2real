@@ -12,7 +12,7 @@ from scipy.stats import truncnorm
 
 class CustomHopper(MujocoEnv, utils.EzPickle):
     def __init__(self, xml_file="assets/hopper.xml", domain=None, udr=None, thigh_range=None, leg_range=None, foot_range=None):
-        MujocoEnv.__init__(self, 1, xml_file)
+        MujocoEnv.__init__(self, 4, xml_file)
         utils.EzPickle.__init__(self)
 
         self.udr = udr
