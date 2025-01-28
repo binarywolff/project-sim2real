@@ -45,10 +45,10 @@ def train_PPO_ADR(env_id, trainer_id, domain, environment, total_timesteps, log_
     env = gym.make(env_id)
     #Initial ADR parameters
     min_max_bounds = [(1, 10) for _ in env.get_parameters()]
-    masses_bounds = [(0.5 * mass, 1.5 * mass) for mass in env.get_parameters()] #Initial range between 50% and 150% of original masses
+    masses_bounds = [(0.95*mass, 1.05*mass) for mass in env.get_parameters()] 
     thresholds = (550, 1150)
-    delta = 0.01 #Update step size 
-    m = 20 #Buffer size
+    delta = 0.1 #Update step size 
+    m = 10 #Buffer size
     fixed_torso_mass = env.get_parameters()[0]
     
     env = Monitor(env, log_dir)
@@ -67,10 +67,10 @@ def train_SAC_ADR(env_id, trainer_id, domain, environment, total_timesteps, log_
     env = gym.make(env_id)
     #Initial ADR parameters
     min_max_bounds = [(1, 10) for _ in env.get_parameters()]
-    masses_bounds = [(0.5 * mass, 1.5 * mass) for mass in env.get_parameters()] #Initial range between 50% and 150% of original masses
-    thresholds = (700, 1600)
-    delta = 0.01 #Update step size 
-    m = 20 #Buffer size
+    masses_bounds = [(0.95 * mass, 1.05 * mass) for mass in env.get_parameters()]
+    thresholds = (600, 1450)
+    delta = 0.1 #Update step size 
+    m = 1 #Buffer size
     fixed_torso_mass = env.get_parameters()[0]
     
     env = Monitor(env, log_dir)
