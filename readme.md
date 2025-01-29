@@ -2,6 +2,29 @@
 
 Official assignment at [Google Doc](https://docs.google.com/document/d/1yA9Ta4rWlh2YcRfhtbeJp0TpS-2nUsKK8-wpp3iEj0M/edit?usp=sharing)
 
+## How to Use
+
+Registered Gym environments: 
+- **CustomHopper-source-v0**: hopper defined in the source domain.
+- **CustomHopper-target-v0**: hopper defined in the target domain.
+- **CustomHopper-udr-v0**: hopper supporting UDR during training.
+- **CustomHopper-source-adr-v0**: hopper supporting ADR during training.
+- **HalfCheetah-source-v3**: half cheetah defined in the source domain.
+- **HalfCheetah-target-v3**: half cheetah defined in the target domain.
+- **HalfCheetah-source-udr-v3**: half cheetah supporting ADR during training.
+- **HalfCheetah-source-adr-v3**: half cheetah supporting ADR during training.
+
+Files: 
+- `task1.py`: just to test the different environment setup.
+- `task2.py`: can be used to train the model in any source, target or UDR enviroment. `--env env_id` to specify the environment to use. `--algo` to specify which algorithm to use during training/testing (supported values `ppo` and `sac`). `--test model_path` to test any of the trained model on the desired environment.
+- `task3.py`: automatically trains and tests the following combination on the Hopper environment source->source, source->target, target->target.
+- `task4.py`: automatically trains  and tests UDR on the Hopper environment sourceUDR->source, sourceUDR->target.
+- `train_hopper_adr.py` and `train_cheetah_adr.py`: automatically train a models on Hopper (PPO) and Cheetah (SAC) environment with ADR integration. `task2.py` can be used to test the trained model.
+- `train_multiple_models`: train N models on the specified env and domain. `--domain domain_name` possible values source, target, udr, adr. `--env env_name` possible values hopper or cheetah.
+- `train_multiple_models`: test N previosly trained models on the specified env and domain. `--model model_path` possible values source, target, udr, adr. `--env env_name` possible values hopper or cheetah. Not all models combination are already trained.
+- `models/`: contains a collection of already trained models both on Hopper and Cheetah environment.
+- `automatic_domain_randomization.py`: contains the class that define the logic of Automatic Domain Randomization (ADR).
+
 
 ## Getting started
 
